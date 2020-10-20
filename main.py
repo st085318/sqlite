@@ -43,15 +43,130 @@ def insert_data_from_table_to_db(path_to_table):
         subject = Subject(grade_info.subject)
         subject_id = subject.get_or_create_subject_id()
         grade = Grade(student_id, subject_id, grade_info.grade, grade_info.data)
-        #print(str(student_id) + " " + str(subject_id) + " " +str(grade_id))
 
 
-if __name__ == '__main__':
-    create_database()
+def get_average_mark_in_subject(subject):
+    subj = Subject(subject)
+    subject_id = subj.subject_id
     conn = sqlite3.connect('students.db')
     cur = conn.cursor()
-    insert_data_from_table_to_db("as.csv")
-    cur.execute("SELECT * FROM grades")
-    print(cur.fetchall())
+    set_students_id = set()
+    cur.execute("""SELECT * FROM grades WHERE subject_id=?""", (subject_id,))
+    grades = cur.fetchall()
+    amount = 0
+    marks_sum = 0
+    average_mark = {}
+    for grade in grades:
+        set_students_id.add(grade[1])
+    for student_id in set_students_id:
+        amount = 0
+        marks_sum = 0
+        for grade in grades:
+            if grade[1] == student_id:
+                amount += 1
+                marks_sum += grade[4]
+        if amount == 0:  # defence from zero division error
+            amount = 1
+        cur.execute("""SELECT first_name FROM students WHERE student_id = ?""", (student_id,))
+        student_name = cur.fetchall()
+        student_first_name = str(student_name[0][0])
+        cur.execute("""SELECT second_name FROM students WHERE student_id = ?""", (student_id,))
+        student_name = cur.fetchall()
+        student_second_name = str(student_name[0][0])
+        average_mark.update({student_first_name+" "+student_second_name: float(marks_sum) / float(amount)})
+    return average_mark
+
+
+def get_average_mark_in_group(gang):
+    conn = sqlite3.connect('students.db')
+    cur = conn.cursor()
+    set_students_id = set()
+    cur.execute("SELECT * FROM grades ")
+    grades = cur.fetchall()
+    cur.execute("SELECT subject_id FROM grades ")
+    subject_ids = cur.fetchall()
+    cur.execute("SELECT student_id FROM students WHERE gang = ?", (gang,))
+    students_in_group = cur.fetchall()
+    amount = 0
+    marks_sum = 0
+    average_mark = {}
+    subject_and_marks = {}
+    for grade in grades:
+        if (grade[1],) in students_in_group:
+            print(grade[1])
+            set_students_id.add(grade[1])
+    for subject_id in subject_ids:
+        average_mark = {}
+        for student_id in set_students_id:
+            amount = 0
+            marks_sum = 0
+            for grade in grades:
+                if grade[1] == student_id and (grade[2],) == subject_id:
+                    amount += 1
+                    marks_sum += grade[4]
+            if amount == 0:  # defence from zero division error
+                amount = 1
+            cur.execute("""SELECT first_name FROM students WHERE student_id = ?""", (student_id,))
+            student_name = cur.fetchall()
+            student_first_name = str(student_name[0][0])
+            cur.execute("""SELECT second_name FROM students WHERE student_id = ?""", (student_id,))
+            student_name = cur.fetchall()
+            student_second_name = str(student_name[0][0])
+            average_mark.update({student_first_name+" "+student_second_name: float(marks_sum) / float(amount)})
+        for student_id in students_in_group[0]:
+            if not student_id in set_students_id:
+                cur.execute("""SELECT first_name FROM students WHERE student_id = ?""", (student_id,))
+                student_name = cur.fetchall()
+                student_first_name = str(student_name[0][0])
+                cur.execute("""SELECT second_name FROM students WHERE student_id = ?""", (student_id,))
+                student_name = cur.fetchall()
+                student_second_name = str(student_name[0][0])
+                average_mark.update({student_first_name + " " + student_second_name: 0.0})
+        cur.execute("SELECT title FROM subjects WHERE subject_id = ?", subject_id)
+        subject_title = cur.fetchall()[0][0]
+        subject_and_marks.update({subject_title: average_mark})
+    return subject_and_marks
+
+
+def get_average_mark_in_group_in_subject(gang, subject):
+    subjects_and_average_marks = get_average_mark_in_group(gang)
+    return subjects_and_average_marks.get(subject)
+
+
+def clean_grades():
+    conn = sqlite3.connect('students.db')
+    cur = conn.cursor()
+    cur.execute("TRUNCATE TABLE grades;")
+    conn.commit()
+    conn.close()
+
+
+def clean_students():
+    conn = sqlite3.connect('students.db')
+    cur = conn.cursor()
+    cur.execute("TRUNCATE TABLE students;")
+    conn.commit()
+    conn.close()
+
+
+def clean_subjects():
+    conn = sqlite3.connect('students.db')
+    cur = conn.cursor()
+    cur.execute("TRUNCATE TABLE subjects;")
+    conn.commit()
+    conn.close()
+
+
+def clean_base_data():
+    conn = sqlite3.connect('students.db')
+    cur = conn.cursor()
+    cur.execute("TRUNCATE TABLE grades;")
+    cur.execute("TRUNCATE TABLE students;")
+    cur.execute("TRUNCATE TABLE subjects;")
+    conn.commit()
+    conn.close()
+
+if __name__ == '__main__':
+
 
 
