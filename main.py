@@ -87,13 +87,9 @@ def get_average_mark_in_group(gang):
     subject_ids = cur.fetchall()
     cur.execute("SELECT student_id FROM students WHERE gang = ?", (gang,))
     students_in_group = cur.fetchall()
-    amount = 0
-    marks_sum = 0
-    average_mark = {}
     subject_and_marks = {}
     for grade in grades:
         if (grade[1],) in students_in_group:
-            print(grade[1])
             set_students_id.add(grade[1])
     for subject_id in subject_ids:
         average_mark = {}
@@ -136,7 +132,7 @@ def get_average_mark_in_group_in_subject(gang, subject):
 def clean_grades():
     conn = sqlite3.connect('students.db')
     cur = conn.cursor()
-    cur.execute("TRUNCATE TABLE grades;")
+    cur.execute("DELETE FROM grades;")
     conn.commit()
     conn.close()
 
@@ -144,7 +140,7 @@ def clean_grades():
 def clean_students():
     conn = sqlite3.connect('students.db')
     cur = conn.cursor()
-    cur.execute("TRUNCATE TABLE students;")
+    cur.execute("DELETE FROM students;")
     conn.commit()
     conn.close()
 
@@ -152,7 +148,7 @@ def clean_students():
 def clean_subjects():
     conn = sqlite3.connect('students.db')
     cur = conn.cursor()
-    cur.execute("TRUNCATE TABLE subjects;")
+    cur.execute("DELETE FROM subjects;")
     conn.commit()
     conn.close()
 
@@ -160,13 +156,91 @@ def clean_subjects():
 def clean_base_data():
     conn = sqlite3.connect('students.db')
     cur = conn.cursor()
-    cur.execute("TRUNCATE TABLE grades;")
-    cur.execute("TRUNCATE TABLE students;")
-    cur.execute("TRUNCATE TABLE subjects;")
+    cur.execute("DELETE FROM grades;")
+    cur.execute("DELETE FROM students;")
+    cur.execute("DELETE FROM subjects;")
     conn.commit()
     conn.close()
 
+
+def help_text():
+    print("what you want to do?")
+    print("input 1 to add new data in base")
+    print("input 2 to clean all data in base")
+    print("input 3 to clean table with subjects")
+    print("input 4 to clean table with students")
+    print("input 5 to clean table with grades")
+    print("input 6 to get average mark in subject")
+    print("input 7 to get average mark in group")
+    print("input 8 to get average mark in group in subject")
+    print("input -1 to get help")
+    print("input 0 to exit")
+
+
 if __name__ == '__main__':
-
-
-
+    create_database()
+    help_text()
+    mode = int(input())
+    while mode != 0:
+        try:
+            if mode == 1:
+                print("input path to table")
+                insert_data_from_table_to_db(input())
+                print("DONE!")
+            elif mode == 2:
+                clean_base_data()
+            elif mode == 3:
+                clean_subjects()
+            elif mode == 4:
+                clean_students()
+            elif mode == 5:
+                clean_grades()
+            elif mode == 6:
+                print("Enter a subject name")
+                average_marks = get_average_mark_in_subject(input())
+                if average_marks == {}:
+                    print("There isn't this subject")
+                for average_mark_in_subject in average_marks:
+                    if average_marks.get(average_mark_in_subject) != 0.0:
+                        print(str(average_mark_in_subject) + " " +
+                              str(average_marks.get(average_mark_in_subject)))
+                    else:
+                        print(str(average_mark_in_subject) + " no marks")
+            elif mode == 7:
+                print("Enter a group number")
+                average_marks = get_average_mark_in_group(int(input()))
+                for subject in average_marks:
+                    print(subject)
+                    for average_mark_in_subject in average_marks.get(subject):
+                        if average_marks.get(subject).get(average_mark_in_subject) != 0.0:
+                            print(str(average_mark_in_subject) + " " +
+                                  str(average_marks.get(subject).get(average_mark_in_subject)))
+                        else:
+                            print(str(average_mark_in_subject) + " no marks")
+            elif mode == 8:
+                print("Enter a group number and a subject name")
+                average_marks = get_average_mark_in_group_in_subject(int(input()), input())
+                if average_marks == None:
+                    print("There isn't this subject")
+                else:
+                    for average_mark_in_subject in average_marks:
+                        if average_marks.get(average_mark_in_subject) != 0.0:
+                            print(str(average_mark_in_subject) + " " +
+                                  str(average_marks.get(average_mark_in_subject)))
+                        else:
+                            print(str(average_mark_in_subject) + " no marks")
+            elif mode == -1:
+                help_text()
+            elif mode == 0:
+                break
+            print("Choose a work mode")
+            mode = int(input())
+        except IndexError:
+            print("There isn't this group")
+            print("Choose a work mode")
+            mode = int(input())
+        except BaseException:
+            print("Oops, error")
+            print("Choose a work mode")
+            mode = int(input())
+    print("Goodbye")
