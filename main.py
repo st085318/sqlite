@@ -38,6 +38,7 @@ def insert_data_from_table_to_db(path_to_table):
         list_input_data = grade_with_data.split(";")
         grade_info = Grade_data(int(list_input_data[0].replace('\ufeff', '')), list_input_data[1], int(list_input_data[2]), list_input_data[3],
                            list_input_data[4], int(list_input_data[5]))
+
         student = Student(grade_info.student_name, grade_info.student_surname, grade_info.students_gang)
         student_id = student.get_or_create_student_id()
         subject = Subject(grade_info.subject)
@@ -66,7 +67,7 @@ def get_average_mark_in_subject(subject):
         for grade in grades:
             if grade[1] == student_id:
                 amount += 1
-                marks_sum += grade[4]
+                marks_sum += grade[3]
         if amount == 0:  # defence from zero division error
             amount = 1
         cur.execute("""SELECT first_name FROM students WHERE student_id = ?""", (student_id,))
@@ -101,7 +102,7 @@ def get_average_mark_in_group(gang):
             for grade in grades:
                 if grade[1] == student_id and (grade[2],) == subject_id:
                     amount += 1
-                    marks_sum += grade[4]
+                    marks_sum += grade[3]
             if amount == 0:  # defence from zero division error
                 amount = 1
             cur.execute("""SELECT first_name FROM students WHERE student_id = ?""", (student_id,))

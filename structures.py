@@ -2,9 +2,9 @@ from collections import namedtuple
 import sqlite3
 
 Grade_data = namedtuple('Grade_data', [
-    'data',
-    'subject',
     'grade',
+    'subject',
+    'data',
     'student_name',
     'student_surname',
     'students_gang'
