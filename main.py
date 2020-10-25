@@ -33,8 +33,8 @@ def create_database():
 
 def insert_data_from_table_to_db(path_to_table):
     table_of_grades = open(path_to_table, 'r', encoding='utf8')
-    for i in range(10):
-        grade_with_data = table_of_grades.readline()
+    grade_with_data = table_of_grades.readline()
+    while grade_with_data != "":
         list_input_data = grade_with_data.split(";")
         grade_info = Grade_data(int(list_input_data[0].replace('\ufeff', '')), list_input_data[1], int(list_input_data[2]), list_input_data[3],
                            list_input_data[4], int(list_input_data[5]))
@@ -43,6 +43,8 @@ def insert_data_from_table_to_db(path_to_table):
         subject = Subject(grade_info.subject)
         subject_id = subject.get_or_create_subject_id()
         grade = Grade(student_id, subject_id, grade_info.grade, grade_info.data)
+        grade_with_data = table_of_grades.readline()
+    table_of_grades.close()
 
 
 def get_average_mark_in_subject(subject):
@@ -189,12 +191,16 @@ if __name__ == '__main__':
                 print("DONE!")
             elif mode == 2:
                 clean_base_data()
+                print("Database cleared")
             elif mode == 3:
                 clean_subjects()
+                print("Table cleared")
             elif mode == 4:
                 clean_students()
+                print("Table cleared")
             elif mode == 5:
                 clean_grades()
+                print("Table cleared")
             elif mode == 6:
                 print("Enter a subject name")
                 average_marks = get_average_mark_in_subject(input())
